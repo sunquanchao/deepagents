@@ -52,7 +52,9 @@ def create_sql_deep_agent():
         ],  # Specialized workflows (query-writing, schema-exploration)
         tools=sql_tools,  # SQL database tools
         subagents=[],  # No subagents needed
-        backend=FilesystemBackend(root_dir=base_dir),  # Persistent file storage
+        # Persistent file storage; virtual_mode=False keeps real-filesystem
+        # path semantics (pinned explicitly: the default flips in 0.6.0)
+        backend=FilesystemBackend(root_dir=base_dir, virtual_mode=False),
     )
 
     return agent
