@@ -27,8 +27,16 @@ def create_sql_deep_agent():
     db_path = os.path.join(base_dir, "chinook.db")
     db = SQLDatabase.from_uri(f"sqlite:///{db_path}", sample_rows_in_table_info=3)
 
-    # Initialize Claude Sonnet 4.5 for toolkit initialization
-    model = ChatAnthropic(model="claude-sonnet-4-5-20250929", temperature=0)
+    # Initialize the model.
+    # Modified: read the model name from the ANTHROPIC_MODEL env var so that
+    # Anthropic-compatible endpoints (e.g. BigModel/GLM) can be used without
+    # code changes. The original hardcoded Claude configuration is kept below
+    # for reference; restore it if you have direct Anthropic API access.
+    #
+    # Original configuration (requires an Anthropic API key):
+    # model = ChatAnthropic(model="claude-sonnet-4-5-20250929", temperature=0)
+    model_name = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+    model = ChatAnthropic(model=model_name, temperature=0)
 
     # Create SQL toolkit and get tools
     toolkit = SQLDatabaseToolkit(db=db, llm=model)
@@ -36,7 +44,7 @@ def create_sql_deep_agent():
 
     # Create the Deep Agent with all parameters
     agent = create_deep_agent(
-        model=model,  # Claude Sonnet 4.5 with temperature=0
+        model=model,  # Model from ANTHROPIC_MODEL (default: Claude Sonnet 4.5), temperature=0
         memory=["./AGENTS.md"],  # Agent identity and general instructions
         skills=[
             "./skills/"
