@@ -10,6 +10,7 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from rich.console import Console
 from rich.panel import Panel
+from rich.text import Text
 
 # Load environment variables
 load_dotenv()
@@ -102,6 +103,31 @@ Examples:
             if hasattr(final_message, "content")
             else str(final_message)
         )
+        # Reasoning models return a list of content blocks (thinking, text, ...);
+        # display thinking separately from the final answer
+        thinking = ""
+        if isinstance(answer, list):
+            thinking = "\n".join(
+                block.get("thinking", "")
+                for block in answer
+                if isinstance(block, dict) and block.get("type") == "thinking"
+            )
+            answer = "\n".join(
+                block.get("text", "")
+                for block in answer
+                if isinstance(block, dict) and block.get("type") == "text"
+            )
+
+        if thinking:
+            # Rendered as plain Text so rich markup in the reasoning is not interpreted
+            console.print(
+                Panel(
+                    Text(thinking, style="dim"),
+                    title="Thinking",
+                    border_style="dim",
+                )
+            )
+            console.print()
 
         console.print(
             Panel(f"[bold green]Answer:[/bold green]\n\n{answer}", border_style="green")
