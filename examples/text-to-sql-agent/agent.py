@@ -58,6 +58,18 @@ def create_sql_deep_agent():
     return agent
 
 
+def echo_sql_calls(message) -> None:
+    """Echo SQL emitted by SQL toolkit tool calls to the user"""
+    for call in getattr(message, "tool_calls", None) or []:
+        query = (call.get("args") or {}).get("query")
+        if query:
+            # Rendered as plain Text so rich markup in the SQL is not interpreted
+            console.print(
+                Text(f"[{call.get('name', 'tool')}] ", style="bold cyan"),
+                Text(query, style="cyan"),
+            )
+
+
 def main():
     """Main entry point for the SQL Deep Agent CLI"""
     parser = argparse.ArgumentParser(
@@ -92,12 +104,20 @@ Examples:
     console.print("[dim]Processing query...[/dim]\n")
 
     try:
-        result = agent.invoke(
-            {"messages": [{"role": "user", "content": args.question}]}
-        )
+        # Stream intermediate steps so executed SQL is echoed while it runs
+        final_message = None
+        for chunk in agent.stream(
+            {"messages": [{"role": "user", "content": args.question}]},
+            stream_mode="updates",
+        ):
+            for update in chunk.values():
+                if not isinstance(update, dict):
+                    continue
+                for message in update.get("messages", []):
+                    final_message = message
+                    echo_sql_calls(message)
 
         # Extract and display the final answer
-        final_message = result["messages"][-1]
         answer = (
             final_message.content
             if hasattr(final_message, "content")
