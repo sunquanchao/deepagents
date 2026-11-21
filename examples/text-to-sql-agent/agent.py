@@ -7,7 +7,10 @@ from deepagents.backends import FilesystemBackend
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_community.utilities import SQLDatabase
+# Deep import: the package root exports SQLDatabase lazily via __getattr__,
+# which static analyzers cannot resolve; importing the real module makes
+# go-to-definition work in IDEs
+from langchain_community.utilities.sql_database import SQLDatabase
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
