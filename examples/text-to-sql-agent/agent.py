@@ -18,6 +18,15 @@ from rich.text import Text
 # Load environment variables
 load_dotenv()
 
+# Windows consoles default to legacy encodings (e.g. GBK) that cannot encode
+# emoji emitted by model output; switch stdout to UTF-8 and replace any
+# remaining unencodable characters so display never crashes
+if hasattr(sys.stdout, "reconfigure") and (sys.stdout.encoding or "").lower() not in (
+    "utf-8",
+    "utf8",
+):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 console = Console()
 
 
