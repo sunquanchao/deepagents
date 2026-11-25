@@ -166,6 +166,7 @@ def load_subagents(config_path: Path) -> list:
 def create_content_writer():
     """Create a content writer agent configured by filesystem files."""
     return create_deep_agent(
+        model=os.environ.get("CONTENT_WRITER_MODEL", "anthropic:glm-5"),
         memory=["./AGENTS.md"],           # Loaded by MemoryMiddleware
         skills=["./skills/"],             # Loaded by SkillsMiddleware
         tools=[generate_cover, generate_social_image],  # Image generation
