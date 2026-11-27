@@ -140,6 +140,17 @@ Examples:
     console.print("[dim]Creating SQL Deep Agent...[/dim]")
     agent = create_sql_deep_agent()
 
+    # Optional Langfuse tracing; enabled by setting LANGFUSE_* in .env
+    langfuse_callback = create_langfuse_callback()
+    callbacks = [langfuse_callback] if langfuse_callback else []
+    if langfuse_callback:
+        console.print("[dim]Langfuse tracing enabled[/dim]")
+    else:
+        console.print(
+            "[dim]Langfuse tracing disabled (set LANGFUSE_PUBLIC_KEY, "
+            "LANGFUSE_SECRET_KEY, LANGFUSE_HOST in .env to enable)[/dim]"
+        )
+
     # Invoke the agent
     console.print("[dim]Processing query...[/dim]\n")
 
@@ -148,6 +159,7 @@ Examples:
         final_message = None
         for chunk in agent.stream(
             {"messages": [{"role": "user", "content": args.question}]},
+            config={"callbacks": callbacks},
             stream_mode="updates",
         ):
             for update in chunk.values():
@@ -156,6 +168,10 @@ Examples:
                 for message in update.get("messages", []):
                     final_message = message
                     echo_sql_calls(message)
+
+        # Flush traces before exiting; the CLI is a short-lived process
+        if langfuse_callback:
+            flush_langfuse()
 
         # Extract and display the final answer
         answer = (
