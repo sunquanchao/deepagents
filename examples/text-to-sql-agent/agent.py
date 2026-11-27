@@ -30,6 +30,32 @@ if hasattr(sys.stdout, "reconfigure") and (sys.stdout.encoding or "").lower() no
 console = Console()
 
 
+def create_langfuse_callback():
+    """Create a Langfuse tracing callback when credentials are configured.
+
+    Returns None when LANGFUSE_PUBLIC_KEY is unset or the SDK is missing,
+    so the agent runs normally without observability.
+    """
+    if not os.getenv("LANGFUSE_PUBLIC_KEY"):
+        return None
+    try:
+        from langfuse.langchain import CallbackHandler
+    except ImportError:
+        console.print(
+            "[yellow]LANGFUSE_PUBLIC_KEY is set but langfuse is not "
+            "installed; run: uv pip install langfuse[/yellow]"
+        )
+        return None
+    return CallbackHandler()
+
+
+def flush_langfuse() -> None:
+    """Flush queued traces before the short-lived CLI process exits"""
+    from langfuse import get_client
+
+    get_client().shutdown()
+
+
 def create_sql_deep_agent():
     """Create and return a text-to-SQL Deep Agent"""
 

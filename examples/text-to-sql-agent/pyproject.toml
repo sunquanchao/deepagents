@@ -10,6 +10,7 @@ dependencies = [
     "langchain-anthropic>=1.5.4,<2.0.0",
     "langchain-community>=0.4.2",
     "langgraph>=1.2.6",
+    "langfuse>=5.0",
     "sqlalchemy>=2.0.51",
     "python-dotenv>=1.2.2",
     "tavily-python>=0.7.26",

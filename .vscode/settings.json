@@ -71,5 +71,6 @@
     {
       "file": ".github/workflows/pr_lint.yml"
     }
-  ]
+  ],
+  "python.terminal.useEnvFile": true
 }
